@@ -26,6 +26,10 @@
 #include "arm_reg.h"
 
 #include <xpcc/architecture.hpp>
+#include <xpcc/debug.hpp>
+
+#undef	XPCC_LOG_LEVEL
+#define	XPCC_LOG_LEVEL xpcc::log::INFO
 
 using ClockPin = GpioOutputC2;
 using DataPin = GpioC3;
@@ -451,7 +455,7 @@ bool ARMDebug::dpReadPoll(unsigned addr, uint32_t &data, uint32_t mask, uint32_t
 			return false;
 		if ((data & mask) == expected)
 			return true;
-		yield();
+		//yield();
 	} while (retries--);
 
 	log(LOG_ERROR, "ARMDebug: Timed out while polling DP ([%08x] & %08x == %08x). Current value: %08x",
@@ -467,7 +471,7 @@ bool ARMDebug::apReadPoll(unsigned addr, uint32_t &data, uint32_t mask, uint32_t
 			return false;
 		if ((data & mask) == expected)
 			return true;
-		yield();
+		//yield();
 	} while (retries--);
 
 	log(LOG_ERROR, "ARMDebug: Timed out while polling AP ([%08x] & %08x == %08x). Current value: %08x",
@@ -483,7 +487,7 @@ bool ARMDebug::memPoll(unsigned addr, uint32_t &data, uint32_t mask, uint32_t ex
 			return false;
 		if ((data & mask) == expected)
 			return true;
-		yield();
+		//yield();
 	} while (retries--);
 
 	log(LOG_ERROR, "ARMDebug: Timed out while polling MEM ([%08x] & %08x == %08x). Current value: %08x",
@@ -499,7 +503,7 @@ bool ARMDebug::memPollByte(unsigned addr, uint8_t &data, uint8_t mask, uint8_t e
 			return false;
 		if ((data & mask) == expected)
 			return true;
-		yield();
+		//yield();
 	} while (retries--);
 
 	log(LOG_ERROR, "ARMDebug: Timed out while polling MEM ([%08x] & %02x == %02x). Current value: %02x",
@@ -761,15 +765,11 @@ void ARMDebug::wireReadTurnaround()
 
 void ARMDebug::log(int level, const char *fmt, ...)
 {
-	if (level <= logLevel && Serial) {
+	if (level <= logLevel) {
 		va_list ap;
-		char buffer[256];
-
 		va_start(ap, fmt);
-		int ret = vsnprintf(buffer, sizeof buffer, fmt, ap);
+		XPCC_LOG_INFO.vprintf(fmt, ap);
 		va_end(ap);
-
-		Serial.println(buffer);
 	}
 }
 
@@ -777,34 +777,25 @@ void ARMDebug::hexDump(uint32_t addr, unsigned count, int level)
 {
 	// Hex dump target memory to the log
 
-	if (level <= logLevel && Serial) {
-		va_list ap;
-		char buffer[32];
-		LogLevel oldLogLevel;
-
-		setLogLevel(LOG_NONE, oldLogLevel);
-
+	if (level <= logLevel) {
 		while (count) {
-			snprintf(buffer, sizeof buffer, "%08x:", addr);
-			Serial.print(buffer);
+			XPCC_LOG_INFO << xpcc::hex << addr << ":";
 
 			for (unsigned x = 0; count && x < 4; x++) {
 				uint32_t word;
 				if (memLoad(addr, word)) {
-					snprintf(buffer, sizeof buffer, " %08x", word);
-					Serial.print(buffer);
+					XPCC_LOG_INFO << " " << xpcc::hex << word;
 				} else {
-					Serial.print(" (error )");
+					XPCC_LOG_INFO << " (error )";
 				}
 
 				count--;
 				addr += 4;
 			}
 
-			Serial.println();
+			XPCC_LOG_INFO << xpcc::endl;
 		}
 
-		setLogLevel(oldLogLevel);
 	}
 }
 
