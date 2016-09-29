@@ -1,6 +1,8 @@
 #include <xpcc/architecture/platform.hpp>
 #include <xpcc/debug/logger.hpp>
 
+#include <arm_debug.h>
+
 // ----------------------------------------------------------------------------
 // Set the log level
 #undef	XPCC_LOG_LEVEL
@@ -32,6 +34,15 @@ main()
 	XPCC_LOG_INFO    << "info"    << xpcc::endl;
 	XPCC_LOG_WARNING << "warning" << xpcc::endl;
 	XPCC_LOG_ERROR   << "error"   << xpcc::endl;
+
+	ARMDebug target;
+	target.begin();
+	uint32_t id_code;
+	if(target.getIDCODE(id_code)) {
+		XPCC_LOG_INFO << "IDCODE: " << xpcc::hex << id_code << xpcc::endl;
+	} else {
+		XPCC_LOG_ERROR << "failed to connect to target" << xpcc::endl;
+	}
 
 	while (1)
 	{
