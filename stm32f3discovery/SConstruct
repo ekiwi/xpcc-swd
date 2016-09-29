@@ -15,8 +15,8 @@ env.Defines()
 # you may append these methods manually to your local SConstruct file!
 
 # find all source files
-env.Append(CPPPATH = ['.'])
-files = env.FindFiles('.')
+env.Append(CPPPATH = ['.', '../swd'])
+files = env.FindFiles(['.', '../swd'])
 
 # add manually specified sources as well
 if 'extrasources' in env['XPCC_CONFIG']['build']:
