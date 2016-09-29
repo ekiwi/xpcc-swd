@@ -21,21 +21,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Arduino.h>
-#include <stdarg.h>
+
 #include "arm_debug.h"
+#include "arm_reg.h"
 
-#include "arm_kinetis_reg.h"  // Actually we just want ARM
+#include <xpcc/architecture.hpp>
+
+using ClockPin = GpioOutputC2;
+using DataPin = GpioC3;
 
 
-ARMDebug::ARMDebug(unsigned clockPin, unsigned dataPin, LogLevel logLevel)
-    : clockPin(clockPin), dataPin(dataPin), logLevel(logLevel)
+ARMDebug::ARMDebug(LogLevel logLevel)
+    : logLevel(logLevel)
 {}
 
 bool ARMDebug::begin()
 {
-	pinMode(clockPin, OUTPUT);
-	pinMode(dataPin, INPUT_PULLUP);
+	ClockPin::setOutput();
+	DataPin::setInput(Gpio::InputType::PullUp);
 
 	// Invalidate cache
 	cache.select = 0xFFFFFFFF;
@@ -703,10 +706,10 @@ void ARMDebug::wireWrite(uint32_t data, unsigned nBits)
 	log(LOG_TRACE_SWD, "SWD Write %08x (%d)", data, nBits);
 
 	while (nBits--) {
-		digitalWrite(dataPin, data & 1);
-		digitalWrite(clockPin, LOW);
+		DataPin::set(data & 1);
+		ClockPin::reset();
 		data >>= 1;
-		digitalWrite(clockPin, HIGH);
+		ClockPin::set();
 	}
 }
 
@@ -723,12 +726,12 @@ uint32_t ARMDebug::wireRead(unsigned nBits)
 	unsigned count = nBits;
 
 	while (count--) {
-		if (digitalRead(dataPin)) {
+		if (DataPin::read()) {
 			result |= mask;
 		}
-		digitalWrite(clockPin, LOW);
+		ClockPin::reset();
 		mask <<= 1;
-		digitalWrite(clockPin, HIGH);
+		ClockPin::set();
 	}
 
 	log(LOG_TRACE_SWD, "SWD Read  %08x (%d)", result, nBits);
@@ -739,21 +742,21 @@ void ARMDebug::wireWriteTurnaround()
 {
 	log(LOG_TRACE_SWD, "SWD Write trn");
 
-	digitalWrite(dataPin, HIGH);
-	pinMode(dataPin, INPUT_PULLUP);
-	digitalWrite(clockPin, LOW);
-	digitalWrite(clockPin, HIGH);
-	pinMode(dataPin, OUTPUT);
+	DataPin::set();
+	DataPin::setInput(Gpio::InputType::PullUp);
+	ClockPin::reset();
+	ClockPin::set();
+	DataPin::setOutput();
 }
 
 void ARMDebug::wireReadTurnaround()
 {
 	log(LOG_TRACE_SWD, "SWD Read  trn");
 
-	digitalWrite(dataPin, HIGH);
-	pinMode(dataPin, INPUT_PULLUP);
-	digitalWrite(clockPin, LOW);
-	digitalWrite(clockPin, HIGH);
+	DataPin::set();
+	DataPin::setInput(Gpio::InputType::PullUp);
+	ClockPin::reset();
+	ClockPin::set();
 }
 
 void ARMDebug::log(int level, const char *fmt, ...)

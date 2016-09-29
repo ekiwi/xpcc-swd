@@ -40,7 +40,8 @@ public:
 		LOG_MAX
 	};
 
-	ARMDebug(unsigned clockPin, unsigned dataPin, LogLevel logLevel = LOG_NORMAL);
+	// currently the clock and data pins are hardcoded
+	ARMDebug(LogLevel logLevel = LOG_NORMAL);
 
 	//////////////// Higher level API
 
@@ -183,7 +184,6 @@ public:
 	static const unsigned DEFAULT_RETRIES = 50;
 
 private:
-	uint8_t clockPin, dataPin, fastPins;
 	LogLevel logLevel;
 
 	// Cached versions of ARM debug registers
