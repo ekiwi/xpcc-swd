@@ -28,20 +28,12 @@ main()
 	GpioInputA3::connect(Usart2::Rx, Gpio::InputType::PullUp);
 	Usart2::initialize<Board::systemClock, 115200>(12);
 
-	// Use the logging streams to print some messages.
-	// Change XPCC_LOG_LEVEL above to enable or disable these messages
-	XPCC_LOG_DEBUG   << "debug"   << xpcc::endl;
-	XPCC_LOG_INFO    << "info"    << xpcc::endl;
-	XPCC_LOG_WARNING << "warning" << xpcc::endl;
-	XPCC_LOG_ERROR   << "error"   << xpcc::endl;
-
 	ARMDebug target;
-	target.begin();
-	uint32_t id_code;
-	if(target.getIDCODE(id_code)) {
-		XPCC_LOG_INFO << "IDCODE: " << xpcc::hex << id_code << xpcc::endl;
-	} else {
+	if(not target.begin()) {
 		XPCC_LOG_ERROR << "failed to connect to target" << xpcc::endl;
+		XPCC_LOG_ERROR << "will just keep looping...." << xpcc::endl;
+		while(true)
+			;
 	}
 
 	while (1)
