@@ -770,6 +770,7 @@ void ARMDebug::log(int level, const char *fmt, ...)
 		va_start(ap, fmt);
 		XPCC_LOG_INFO.vprintf(fmt, ap);
 		va_end(ap);
+		XPCC_LOG_INFO << xpcc::endl;
 	}
 }
 
