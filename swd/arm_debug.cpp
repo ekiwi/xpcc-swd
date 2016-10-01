@@ -31,8 +31,8 @@
 #undef	XPCC_LOG_LEVEL
 #define	XPCC_LOG_LEVEL xpcc::log::INFO
 
-using ClockPin = GpioOutputC2;
-using DataPin = GpioC3;
+using ClockPin = GpioOutputC6;
+using DataPin = GpioC7;
 
 
 ARMDebug::ARMDebug(LogLevel logLevel)
