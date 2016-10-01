@@ -7,4 +7,4 @@ build/
 *.creator
 *.files
 *.includes
-
+*.creator.user
